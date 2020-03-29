@@ -28,7 +28,7 @@ const getRouter = () => {
   let router = []
   result.forEach(r => {
     const route = require('./modules/' + r)
-    router = [...buildRouter(route)]
+    router = [...router, ...buildRouter(route)]
   })
   return router
 }
