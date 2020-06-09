@@ -6,18 +6,25 @@ const router = require('./index.js')
 const buildRouter = route => {
   const res = []
   const { baseUrl, children } = route
-  children.forEach(i => {
-    const obj = {
-      path: baseUrl + i.path,
-      style: {
-        navigationBarTitleText: i.name
+  function builder (baseUrl, children) {
+    children.forEach(i => {
+      if (i.children) {
+        builder(baseUrl + i.path + '/', i.children)
+      } else {
+        const obj = {
+          path: baseUrl + i.path,
+          style: {
+            navigationBarTitleText: i.name
+          }
+        }
+        Object.keys(i).forEach(ii => {
+          !['path', 'name'].includes(ii) && (obj.style[ii] = i[ii])
+        })
+        res.push(obj)
       }
-    }
-    Object.keys(i).forEach(ii => {
-      !['path', 'name'].includes(ii) && (obj.style[ii] = i[ii])
     })
-    res.push(obj)
-  })
+  }
+  builder(baseUrl, children)
   return res
 }
 
@@ -28,7 +35,7 @@ const getRouter = () => {
   let router = []
   result.forEach(r => {
     const route = require('./modules/' + r)
-    router = [...router, ...buildRouter(route)]
+    router = [ ...router, ...buildRouter(route)]
   })
   return router
 }
