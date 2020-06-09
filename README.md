@@ -25,50 +25,7 @@ router              # 动态路由文件夹
 代码如下：
 
 ```js
-const fs = require('fs')
-const path = require('path')
-const router = require('./index.js')
-
-// 将子路由模块配置文件转化为 uniapp 配置文件格式
-const buildRouter = route => {
-  const res = []
-  const { baseUrl, children } = route
-  children.forEach(i => {
-    const obj = {
-      path: baseUrl + i.path,
-      style: {
-        navigationBarTitleText: i.name
-      }
-    }
-    Object.keys(i).forEach(ii => {
-      !['path', 'name'].includes(ii) && (obj.style[ii] = i[ii])
-    })
-    res.push(obj)
-  })
-  return res
-}
-
-// 自动加载 './modules' 目录子路由配置文件
-const getRouter = () => {
-  const srcPath = path.resolve(__dirname, './modules')
-  const result = fs.readdirSync(srcPath)
-  let router = []
-  result.forEach(r => {
-    const route = require('./modules/' + r)
-    router = [...buildRouter(route)]
-  })
-  return router
-}
-
-// 构建 pages 并写入 pages.json 文件
-router.pages = getRouter()
-fs.writeFile(
-  __dirname + '/../pages.json',
-  // 我这边是用两个空格来缩进 pages.json，如果喜欢制表符，第三个参数更换你为 \t 即可
-  JSON.stringify(router, null, '  '),
-  e => e ? console.error(e) : console.log('pages.json 配置文件更新成功')
-)
-
+// 代码见源码，因修复BUG，总是同步到这里来不好。。。
 ```
 
 `build.js` 文件为主文件，是用于编译 `pages.json` 的。如果你有 `nodejs` 编程基础的话，这是一个巨简单的问题。如果没有的话，就不用管了，直接复制走即可。
@@ -167,7 +124,43 @@ module.exports = {
 }
 
 ```
+
 上面的这个 `'app-plus'` 会自动插入进去的，官方文档要求怎么写，你在这边就怎么写就好了。一般这个用得比较少，所以这个我就不做额外的处理了。
+
+### 子路由嵌套写法
+
+虽然划分了各个子路由到不同的文件，但是，这些里面可能还是需要嵌套写法的。因此我更新了代码，增加了这种写法。
+
+```js
+module.exports = {
+  baseUrl: 'pages/site/',
+  children: [
+    {
+      path: 'index',
+      name: '首页',
+      'app-plus': { titleNView: { buttons:[{ text:'消息', fontSize:'16px' }] } }
+    },
+    { path: 'tobeAcceptedTask', name: '待接受任务', },
+    {
+      path: 'task',
+      // 嵌套写法演示
+      children: [
+        { path: 'index', name: '任务' },
+        {
+          path: 'deliveryMerchant', name: '配送商户',
+         'app-plus': { titleNView: { buttons:[{ text:'地图模式', fontSize:'14px', width: '76px' }] } }
+        },
+        {
+          path: 'map', name: '地图模式',
+          'app-plus': { titleNView: false }
+        },
+        { path: 'goodsList', name: '商品列表' },
+        { path: 'receivables', name: '收款' },
+      ]
+    },
+  ]
+}
+```
 
 ## 使用
 
